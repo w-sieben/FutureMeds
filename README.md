@@ -104,15 +104,9 @@ roughly the top 20% and bottom 13% of the map are hidden on desktop.
 
 1. In the Webflow Designer, select the `#map` / `.mapcontainer` div inside `.bluecircle > .map` and
    delete it together with the hidden Jetboost location list inside it.
-2. Drop a **Code Embed** into `.map` and paste:
+2. Drop a **Code Embed** into `.map` and paste (only the map; the section and circle stay Webflow's):
 
    ```html
-   <style>
-     /* Keep zoom buttons and map credits inside the visible part of the half circle. */
-     futuremeds-map { --fm-inset-top: 20%; --fm-inset-bottom: 13.4%; }
-     @media (max-width: 991px) { futuremeds-map { --fm-inset-top: 0px; --fm-inset-bottom: 0px; } }
-     @media (max-width: 767px) { futuremeds-map { --fm-inset-bottom: 40px; } }
-   </style>
    <script type="module"
      src="https://cdn.jsdelivr.net/gh/w-sieben/FutureMeds@1/dist/futuremeds-map.js"></script>
    <futuremeds-map
@@ -131,7 +125,8 @@ roughly the top 20% and bottom 13% of the map are hidden on desktop.
 5. Publish, then check the published page (the Designer canvas doesn't run scripts).
 
 The view values (`17.020342,50.575672`, zoom `3.8`, `2` on phones) are the ones the old map used.
-`index.html` is a replica of this section, so `bun run dev` previews the map in this exact spot.
+The widget measures how much of it the circle and section clip, and moves the zoom buttons and map
+credits into the visible part by itself, at every breakpoint.
 
 ### Options
 
@@ -150,8 +145,6 @@ CSS custom properties (set from page CSS on `futuremeds-map`):
 |--------------------|-----------|------------------------------------------------------|
 | `--fm-pin`         | `#ffffff` | Location dot colour                                  |
 | `--fm-brand`       | `#002068` | Same as `data-brand` (the attribute wins if present) |
-| `--fm-inset-top`   | `0px`     | Pushes the zoom buttons down                         |
-| `--fm-inset-bottom`| `0px`     | Pushes the map credits up                            |
 
 ### Visual design
 

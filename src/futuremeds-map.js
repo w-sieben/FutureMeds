@@ -101,8 +101,8 @@ const WIDGET_CSS = `
   overflow: hidden;
 }
 
-/* On /was-wir-machen the map sits in a shifted, clipped half circle, so parts of its top and
-   bottom are hidden. These insets move the controls and attribution into the visible area. */
+/* Set by _updateInsets() when a parent clips the map (e.g. the half circle on /was-wir-machen),
+   so the controls and attribution stay in the visible part. */
 .maplibregl-ctrl-top-right { top: var(--fm-inset-top, 0px); }
 .maplibregl-ctrl-bottom-right { bottom: var(--fm-inset-bottom, 0px); }
 
@@ -266,14 +266,44 @@ class FutureMedsMap extends HTMLElement {
     this._map.keyboard.disableRotation();
     this._map.addControl(new NavigationControl({ showCompass: false }), "top-right");
 
-    // Webflow tabs/modals can reveal the element after init; keep the canvas sized.
-    this._resizeObserver = new ResizeObserver(() => this._map?.resize());
+    // Webflow tabs/modals can reveal the element after init, and breakpoints change how much of
+    // the map a parent clips; keep the canvas sized and the insets current.
+    this._onResize = () => {
+      this._map?.resize();
+      this._updateInsets();
+    };
+    this._resizeObserver = new ResizeObserver(this._onResize);
     this._resizeObserver.observe(this);
+    window.addEventListener("resize", this._onResize);
+    this._updateInsets();
 
     this._loadMarkers();
   }
 
+  // Measures how much of the map is cut off at the top and bottom by ancestors with
+  // overflow clipping, so the page embed needs no layout-specific CSS.
+  _updateInsets() {
+    if (!this._container) return;
+    const host = this.getBoundingClientRect();
+    let top = host.top;
+    let bottom = host.bottom;
+    for (let el = this.parentElement; el && el !== document.body; el = el.parentElement) {
+      const { overflowX, overflowY } = getComputedStyle(el);
+      if (overflowX === "visible" && overflowY === "visible") continue;
+      const rect = el.getBoundingClientRect();
+      top = Math.max(top, rect.top);
+      bottom = Math.min(bottom, rect.bottom);
+    }
+    let insetTop = Math.max(0, Math.round(top - host.top));
+    let insetBottom = Math.max(0, Math.round(host.bottom - bottom));
+    // Hidden, or clipped so hard the controls can't fit: fall back to the plain layout.
+    if (host.height - insetTop - insetBottom < 120) insetTop = insetBottom = 0;
+    this._container.style.setProperty("--fm-inset-top", `${insetTop}px`);
+    this._container.style.setProperty("--fm-inset-bottom", `${insetBottom}px`);
+  }
+
   disconnectedCallback() {
+    window.removeEventListener("resize", this._onResize);
     this._resizeObserver?.disconnect();
     this._map?.remove();
     this._container?.remove();

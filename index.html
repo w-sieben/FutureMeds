@@ -6,65 +6,20 @@
   <title>futuremeds-map test harness</title>
   <link rel="icon" href="data:,">
   <style>
-    /* Replica of the map section on futuremeds.de/was-wir-machen, using the layout values
-       measured on the live site, so the widget can be checked in the spot it will live in. */
-    body { margin: 0; font-family: "Red Hat Display", system-ui, sans-serif; background: #f4f5f7; }
-    .spacer { padding: 48px 32px; }
-    /* min-height stands in for the stats circles the live section has; it sets how much of the map shows. */
-    .section { position: relative; overflow: hidden; padding: 32px; min-height: 600px; color: #fff; background: linear-gradient(120deg, #0a2a6b, #071a4a); }
-    .container-feature { position: relative; z-index: 1; max-width: 100rem; padding-bottom: 50px; }
-    .container-feature > div { max-width: 600px; }
-    h2 { font-size: 3rem; line-height: 1.15; margin: 32px 0 24px; }
-    p { font-size: 1.25rem; line-height: 1.8; }
-    .bluecircle {
-      z-index: 2; position: absolute; top: 0; right: 0; width: 52.8%; height: 150%;
-      background-color: #002068; border-radius: 100% 0 0 100%; overflow: hidden; transform: translateY(-20%);
-    }
-    .map, .w-embed { height: 100%; }
-    @media (max-width: 991px) {
-      .section { padding-bottom: 300px; }
-      .bluecircle { top: auto; bottom: 0; width: 100%; height: 300px; border-radius: 0; transform: none; }
-      h2 { font-size: 2.25rem; }
-    }
-    @media (max-width: 767px) {
-      .section { padding-bottom: 260px; }
-      .bluecircle { height: 260px; }
-      .map, .w-embed { height: 300px; }
-    }
+    body { margin: 0; padding: 24px; font-family: "Red Hat Display", system-ui, sans-serif; background: #f4f5f7; }
+    main { max-width: 1100px; margin: 0 auto; }
   </style>
   <script type="module" src="./dist/futuremeds-map.js"></script>
 </head>
 <body>
-  <div class="spacer">Scroll down to the map section. The page must keep scrolling over the map; Ctrl/⌘ + scroll zooms.</div>
-
-  <section class="section">
-    <div class="bluecircle">
-      <div class="map">
-        <!-- Everything inside .w-embed is what goes into the Webflow Code Embed. -->
-        <div class="w-embed">
-          <style>
-            /* Keep controls and credits inside the visible part of the clipped half circle. */
-            futuremeds-map { --fm-inset-top: 20%; --fm-inset-bottom: 13.4%; }
-            @media (max-width: 991px) { futuremeds-map { --fm-inset-top: 0px; --fm-inset-bottom: 0px; } }
-            @media (max-width: 767px) { futuremeds-map { --fm-inset-bottom: 40px; } }
-          </style>
-          <futuremeds-map
-            data-src="./data/locations.csv"
-            data-height="100%"
-            data-center="17.020342,50.575672"
-            data-zoom="3.8"
-            data-zoom-mobile="2"></futuremeds-map>
-        </div>
-      </div>
-    </div>
-    <div class="container-feature">
-      <div>
-        <h2>Wir sind in ganz Europa für Patient*innen da</h2>
-        <p>Wir haben in 6 verschiedenen europäischen Ländern zahlreiche Studienzentren, in denen wir neue Behandlungsmöglichkeiten für Betroffene aus ganz Europa anbieten.</p>
-      </div>
-    </div>
-  </section>
-
-  <div class="spacer" style="height: 60vh">End of page.</div>
+  <main>
+    <!-- Same attributes as the Webflow embed; data-src points at the local CSV. -->
+    <futuremeds-map
+      data-src="./data/locations.csv"
+      data-height="600px"
+      data-center="17.020342,50.575672"
+      data-zoom="3.8"
+      data-zoom-mobile="2"></futuremeds-map>
+  </main>
 </body>
 </html>
