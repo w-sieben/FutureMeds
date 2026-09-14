@@ -12,39 +12,169 @@ import Papa from "papaparse";
 
 const DEFAULT_SRC = "https://cdn.jsdelivr.net/gh/w-sieben/FutureMeds@main/data/locations.csv";
 const DEFAULT_HEIGHT = "520px";
-const DEFAULT_BRAND = "#0B2A4A";
+// FutureMeds navy (--futuremeds-dark-blue in the site's CSS). Used for control icons and accents.
+const DEFAULT_BRAND = "#002068";
+const BRAND_TINT = "#dfedff";
 const STYLE_URL = "https://tiles.openfreemap.org/styles/positron";
+
+// Colours copied from the "Monochrome" Mapbox style that futuremeds.de/was-wir-machen used
+// before this widget, so the OpenFreeMap basemap is recoloured to look the same.
+const LAND = "#469ce8";
+const WATER = "#081f64";
+const ROAD = "hsl(227, 80%, 25%)";
+const BUILDING = "hsl(227, 75%, 14%)";
+const WATER_LABEL = "hsl(227, 78%, 36%)";
+const ROAD_LABEL = "hsl(227, 80%, 67%)";
+const DARK_HALO = "hsla(227, 79%, 4%, 0.5)";
+
+// The site is German: label places in German where OpenStreetMap has a name, and translate
+// MapLibre's built-in UI strings.
+const GERMAN_NAME = ["coalesce", ["get", "name:de"], ["get", "name:latin"], ["get", "name"]];
+const LOCALE = {
+  "AttributionControl.ToggleAttribution": "Quellenangaben ein-/ausblenden",
+  "NavigationControl.ZoomIn": "Vergrößern",
+  "NavigationControl.ZoomOut": "Verkleinern",
+  "Popup.Close": "Schließen",
+  "CooperativeGesturesHandler.WindowsHelpText": "Strg + Scrollen zum Zoomen der Karte",
+  "CooperativeGesturesHandler.MacHelpText": "⌘ + Scrollen zum Zoomen der Karte",
+  "CooperativeGesturesHandler.MobileHelpText": "Karte mit zwei Fingern bewegen",
+};
 
 // MapLibre v6 runs its tile worker from a sibling file. The build copies it next to this
 // bundle, so resolve it relative to wherever the bundle is served from (jsDelivr or local).
 setWorkerUrl(new URL("./maplibre-gl-worker.mjs", import.meta.url).href);
 
+// Recolours positron as plain JSON before it's first drawn, so there's no flash of the grey
+// original. Matching by layer type/id prefix means new positron layers still get a sane colour.
+function themeStyle(style) {
+  const layers = [];
+  for (const layer of style.layers) {
+    const { id, type } = layer;
+    // Road shields are sprite icons that clash with the flat monochrome look.
+    if (id.includes("shield")) continue;
+    const paint = { ...layer.paint };
+    const layout = { ...layer.layout };
+    if (type === "background") {
+      paint["background-color"] = LAND;
+    } else if (type === "fill") {
+      // Parks, landcover and landuse are flattened into the land colour, as on the old map.
+      paint["fill-color"] = id === "water" ? WATER : id === "building" ? BUILDING : LAND;
+    } else if (type === "line") {
+      paint["line-color"] = /^(water|boundary)/.test(id) ? WATER : ROAD;
+    } else if (type === "symbol") {
+      const isWater = id.startsWith("water");
+      const isRoad = id.startsWith("highway");
+      paint["text-color"] = isWater ? WATER_LABEL : isRoad ? ROAD_LABEL : "#ffffff";
+      paint["text-halo-color"] = isWater || isRoad ? DARK_HALO : LAND;
+      paint["text-halo-width"] = 1;
+      if (layout["text-field"]) layout["text-field"] = GERMAN_NAME;
+    }
+    layers.push({ ...layer, paint, layout });
+  }
+  return { ...style, layers };
+}
+
+function maskIcon(path) {
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 29 29"><path d="${path}"/></svg>`;
+  return `url("data:image/svg+xml,${encodeURIComponent(svg)}")`;
+}
+// Paths from maplibre-gl.css's own zoom icons, re-rendered as masks so they follow --fm-brand.
+const ZOOM_IN_ICON = maskIcon(
+  "M14.5 8.5c-.75 0-1.5.75-1.5 1.5v3h-3c-.75 0-1.5.75-1.5 1.5S9.25 16 10 16h3v3c0 .75.75 1.5 1.5 1.5S16 19.75 16 19v-3h3c.75 0 1.5-.75 1.5-1.5S19.75 13 19 13h-3v-3c0-.75-.75-1.5-1.5-1.5"
+);
+const ZOOM_OUT_ICON = maskIcon("M10 13c-.75 0-1.5.75-1.5 1.5S9.25 16 10 16h9c.75 0 1.5-.75 1.5-1.5S19.75 13 19 13z");
+
 const WIDGET_CSS = `
 :host {
   --fm-brand: ${DEFAULT_BRAND};
+  --fm-pin: #ffffff;
   display: block;
   position: relative;
   width: 100%;
   height: var(--fm-height, ${DEFAULT_HEIGHT});
 }
-.fm-map { position: absolute; inset: 0; }
-.fm-pin { cursor: pointer; line-height: 0; }
-.fm-pin svg {
+.fm-map {
+  position: absolute;
+  inset: 0;
+  background: ${LAND}; /* no white flash while the style loads */
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+/* On /was-wir-machen the map sits in a shifted, clipped half circle, so parts of its top and
+   bottom are hidden. These insets move the controls and attribution into the visible area. */
+.maplibregl-ctrl-top-right { top: var(--fm-inset-top, 0px); }
+.maplibregl-ctrl-bottom-right { bottom: var(--fm-inset-bottom, 0px); }
+
+/* Plain white dots like the old map. The inner dot scales on hover because MapLibre owns the
+   marker element's transform. */
+.fm-pin { width: 16px; height: 16px; cursor: pointer; }
+.fm-pin::after {
+  content: "";
   display: block;
-  filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.3));
-  transition: transform 150ms ease;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: var(--fm-pin);
+  transition: transform .15s ease;
 }
-.fm-pin:hover svg, .fm-pin:focus-visible svg { transform: translateY(-3px); }
-.fm-pin path { fill: var(--fm-brand); stroke: #fff; stroke-width: 2; }
-.fm-pin circle { fill: #fff; }
+.fm-pin:hover::after, .fm-pin:focus-visible::after { transform: scale(1.25); }
+.fm-pin:focus-visible { outline: none; }
+.fm-pin:focus-visible::after { box-shadow: 0 0 0 3px ${WATER}, 0 0 0 5px #fff; }
+
+/* maplibre-gl.css hardcodes "Helvetica Neue"; inherit instead so the widget uses the page's
+   font (Red Hat Display on futuremeds.de) across the shadow boundary. */
+.maplibregl-map,
+.maplibregl-popup-content,
+.maplibregl-ctrl-attrib,
+.maplibregl-cooperative-gesture-screen {
+  font-family: inherit;
+}
+
+/* Matches the popup CSS the site already had for its Mapbox map. */
 .maplibregl-popup-content {
-  font: 14px/1.4 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-  color: #1a1a1a;
-  padding: 10px 28px 10px 12px;
-  border-radius: 6px;
+  color: #161616;
+  background: #fff;
+  font-size: 16px;
+  line-height: 1.5;
+  padding: 12px 16px;
+  border-radius: 4px;
+  box-shadow: none;
 }
+.maplibregl-popup-close-button + .fm-name { padding-right: 20px; }
 .fm-name { font-weight: 700; }
-.fm-address { margin-top: 2px; color: #555; }
+.fm-address { margin-top: 4px; }
+.maplibregl-popup-close-button {
+  width: 28px;
+  height: 28px;
+  font-size: 18px;
+  color: #667085;
+  border-radius: 0 4px 0 0;
+}
+.maplibregl-popup-close-button:hover { background-color: ${BRAND_TINT}; color: var(--fm-brand); }
+
+.maplibregl-ctrl-group { border-radius: 8px; overflow: hidden; }
+.maplibregl-ctrl-group button:hover { background-color: ${BRAND_TINT}; }
+.maplibregl-ctrl-zoom-in .maplibregl-ctrl-icon, .maplibregl-ctrl-zoom-out .maplibregl-ctrl-icon {
+  background-image: none;
+  background-color: var(--fm-brand);
+  -webkit-mask-position: 50%;
+  mask-position: 50%;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+}
+.maplibregl-ctrl-zoom-in .maplibregl-ctrl-icon {
+  -webkit-mask-image: ${ZOOM_IN_ICON};
+  mask-image: ${ZOOM_IN_ICON};
+}
+.maplibregl-ctrl-zoom-out .maplibregl-ctrl-icon {
+  -webkit-mask-image: ${ZOOM_OUT_ICON};
+  mask-image: ${ZOOM_OUT_ICON};
+}
+.maplibregl-ctrl-attrib.maplibregl-compact { border-radius: 999px; }
+.maplibregl-ctrl-attrib a { color: #475467; }
+
+.maplibregl-cooperative-gesture-screen { background: rgba(0, 32, 104, .6); }
 `;
 
 // Constructable stylesheets are shared across all instances; <style> is the fallback.
@@ -75,10 +205,6 @@ function pinElement(name) {
   const el = document.createElement("div");
   el.className = "fm-pin";
   el.setAttribute("aria-label", name);
-  el.innerHTML =
-    '<svg width="26" height="36" viewBox="0 0 26 36" aria-hidden="true">' +
-    '<path d="M13 1C6.4 1 1 6.3 1 12.9 1 21.8 13 35 13 35s12-13.2 12-22.1C25 6.3 19.6 1 13 1z"/>' +
-    '<circle cx="13" cy="13" r="4.5"/></svg>';
   return el;
 }
 
@@ -100,6 +226,17 @@ function parseRows(text) {
   return rows;
 }
 
+// data-center="lng,lat" + data-zoom="3.8" pin the initial view; otherwise we fit to the pins.
+// data-zoom-mobile applies below 480px, the breakpoint the old site map used.
+function parseView(el) {
+  const [lng, lat] = (el.getAttribute("data-center") || "").split(",").map(Number.parseFloat);
+  const mobileZoom = Number.parseFloat(el.getAttribute("data-zoom-mobile"));
+  const useMobile = Number.isFinite(mobileZoom) && window.matchMedia("(max-width: 479px)").matches;
+  const zoom = useMobile ? mobileZoom : Number.parseFloat(el.getAttribute("data-zoom"));
+  if (!Number.isFinite(lng) || !Number.isFinite(lat) || !Number.isFinite(zoom)) return null;
+  return { center: [lng, lat], zoom };
+}
+
 class FutureMedsMap extends HTMLElement {
   static observedAttributes = ["data-src", "data-height", "data-brand"];
 
@@ -113,16 +250,18 @@ class FutureMedsMap extends HTMLElement {
     this._container.className = "fm-map";
     root.appendChild(this._container);
 
+    const view = parseView(this);
     this._map = new MapLibreMap({
       container: this._container,
-      style: STYLE_URL,
-      center: [15, 50],
-      zoom: 3,
+      center: view?.center ?? [15, 50],
+      zoom: view?.zoom ?? 3,
       cooperativeGestures: true,
       attributionControl: { compact: true },
       dragRotate: false,
       pitchWithRotate: false,
+      locale: LOCALE,
     });
+    this._map.setStyle(STYLE_URL, { transformStyle: (_previous, next) => themeStyle(next) });
     this._map.touchZoomRotate.disableRotation();
     this._map.keyboard.disableRotation();
     this._map.addControl(new NavigationControl({ showCompass: false }), "top-right");
@@ -176,20 +315,38 @@ class FutureMedsMap extends HTMLElement {
     for (const marker of this._markers || []) marker.remove();
     this._markers = [];
     const bounds = new LngLatBounds();
+    const map = this._map;
 
     for (const { name, address, lat, lng } of rows) {
       const html =
         `<div class="fm-name">${escapeHtml(name)}</div>` +
         (address ? `<div class="fm-address">${escapeHtml(address)}</div>` : "");
-      const marker = new Marker({ element: pinElement(name), anchor: "bottom" })
+      const el = pinElement(name);
+      const marker = new Marker({ element: el, anchor: "center" })
         .setLngLat([lng, lat])
-        .setPopup(new Popup({ offset: 24 }).setHTML(html))
-        .addTo(this._map);
+        .setPopup(new Popup({ offset: 12 }).setHTML(html))
+        .addTo(map);
+
+      // Like the old map: a lightweight preview on mouse hover, the full popup on click/tap.
+      const preview = new Popup({ offset: 12, closeButton: false, closeOnClick: false }).setHTML(html);
+      el.addEventListener("mouseenter", () => {
+        if (!marker.getPopup().isOpen()) preview.setLngLat(marker.getLngLat()).addTo(map);
+      });
+      el.addEventListener("mouseleave", () => preview.remove());
+      // Glide the clicked centre to the middle, as the old map did. Besides matching it, this
+      // keeps the popup out of the parts of the map the half-circle layout hides.
+      el.addEventListener("click", () => {
+        preview.remove();
+        map.flyTo({ center: marker.getLngLat(), speed: 0.5, curve: 1, easing: (t) => t });
+      });
+
       this._markers.push(marker);
       bounds.extend([lng, lat]);
     }
 
-    if (rows.length) this._map.fitBounds(bounds, { padding: 60, maxZoom: 11, duration: 0 });
+    if (rows.length && !parseView(this)) {
+      map.fitBounds(bounds, { padding: 60, maxZoom: 11, duration: 0 });
+    }
   }
 }
 

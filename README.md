@@ -96,21 +96,76 @@ The widget is pinned to the release tag `@1`; the CSV comes from `@main` so edit
 The component uses Shadow DOM, so Webflow's global CSS cannot restyle the map and the widget's CSS
 cannot leak into the page.
 
+### On futuremeds.de/was-wir-machen
+
+The map replaces the old Mapbox map in the section *"Wir sind in ganz Europa für Patient*innen da"*.
+There it sits inside a blue half circle (`.bluecircle > .map`) that is shifted up and clipped, so
+roughly the top 20% and bottom 13% of the map are hidden on desktop.
+
+1. In the Webflow Designer, select the `#map` / `.mapcontainer` div inside `.bluecircle > .map` and
+   delete it together with the hidden Jetboost location list inside it.
+2. Drop a **Code Embed** into `.map` and paste:
+
+   ```html
+   <style>
+     /* Keep zoom buttons and map credits inside the visible part of the half circle. */
+     futuremeds-map { --fm-inset-top: 20%; --fm-inset-bottom: 13.4%; }
+     @media (max-width: 991px) { futuremeds-map { --fm-inset-top: 0px; --fm-inset-bottom: 0px; } }
+     @media (max-width: 767px) { futuremeds-map { --fm-inset-bottom: 40px; } }
+   </style>
+   <script type="module"
+     src="https://cdn.jsdelivr.net/gh/w-sieben/FutureMeds@1/dist/futuremeds-map.js"></script>
+   <futuremeds-map
+     data-src="https://cdn.jsdelivr.net/gh/w-sieben/FutureMeds@main/data/locations.csv"
+     data-height="100%"
+     data-center="17.020342,50.575672"
+     data-zoom="3.8"
+     data-zoom-mobile="2"></futuremeds-map>
+   ```
+
+3. Give the Code Embed element a class with **height: 100%** (Webflow wraps it in a `.w-embed`
+   div, which otherwise collapses to zero height and the map disappears).
+4. Remove the old map code: the Mapbox `<script>`/`<link>` tags (`api.mapbox.com`) and the
+   "MAPBOX SETUP CODE" script in the page's custom code settings. Leaving them in keeps loading
+   Mapbox and throws errors once `#map` is gone.
+5. Publish, then check the published page (the Designer canvas doesn't run scripts).
+
+The view values (`17.020342,50.575672`, zoom `3.8`, `2` on phones) are the ones the old map used.
+`index.html` is a replica of this section, so `bun run dev` previews the map in this exact spot.
+
 ### Options
 
-| attribute     | default                                   | effect                     |
-|---------------|-------------------------------------------|----------------------------|
-| `data-src`    | this repo's `@main` CSV on jsDelivr        | CSV URL                    |
-| `data-height` | `520px`                                   | Any CSS height (`60vh`...) |
-| `data-brand`  | `#0B2A4A` (FutureMeds navy)               | Pin colour                 |
+| attribute          | default                              | effect                                          |
+|--------------------|--------------------------------------|-------------------------------------------------|
+| `data-src`         | this repo's `@main` CSV on jsDelivr   | CSV URL                                         |
+| `data-height`      | `520px`                              | Any CSS height (`100%`, `60vh`...)              |
+| `data-brand`       | `#002068` (FutureMeds navy)          | Accent colour: zoom icons, close-button hover   |
+| `data-center`      | none (fit to all pins)               | Initial centre as `lng,lat`; needs `data-zoom`  |
+| `data-zoom`        | none                                 | Initial zoom                                    |
+| `data-zoom-mobile` | same as `data-zoom`                  | Initial zoom below 480px screen width           |
 
-Brand colour can also be set from page CSS via the custom property:
+CSS custom properties (set from page CSS on `futuremeds-map`):
 
-```css
-futuremeds-map { --fm-brand: #C8102E; }
-```
+| property           | default   | effect                                               |
+|--------------------|-----------|------------------------------------------------------|
+| `--fm-pin`         | `#ffffff` | Location dot colour                                  |
+| `--fm-brand`       | `#002068` | Same as `data-brand` (the attribute wins if present) |
+| `--fm-inset-top`   | `0px`     | Pushes the zoom buttons down                         |
+| `--fm-inset-bottom`| `0px`     | Pushes the map credits up                            |
 
-(`data-brand`, when present, wins over page CSS.)
+### Visual design
+
+The look copies the dark-blue "Monochrome" Mapbox style the page used before: land `#469ce8`,
+water and borders `#081f64`, white labels, 16px white location dots, and the site's existing popup
+CSS (white, 4px radius, no shadow, `#161616` text). Place names are German. Hovering a dot shows a
+preview popup, and clicking opens a popup with a close button and glides the map to that centre,
+as the old map did.
+
+The colours are applied by recolouring OpenFreeMap's positron style in the browser
+(`themeStyle` in [`src/futuremeds-map.js`](src/futuremeds-map.js)), so nothing loads from Mapbox.
+Text uses the page's own font (Red Hat Display on futuremeds.de) via `font-family: inherit`; no
+webfont is bundled or fetched. **Note:** the site's hidden hover-side panel (Jetboost) is not
+replicated; the popup shows name and address only.
 
 ## Auto-purge
 
