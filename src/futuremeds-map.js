@@ -182,50 +182,6 @@ const WIDGET_CSS = `
 .maplibregl-popup-close-button + .fm-name { padding-right: 20px; }
 .fm-name { font-weight: 700; }
 .fm-address { margin-top: 4px; color: ${BRAND_TINT}; } /* --futuremeds-blue-10, the site's tint for text on navy */
-
-/* Actions only appear in the click popup: route, call/mail with copy, detail page. */
-.fm-actions {
-  display: grid;
-  gap: 8px;
-  margin-top: 10px;
-  padding-top: 10px;
-  border-top: 1px solid rgba(255, 255, 255, .18);
-}
-.fm-action-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
-.fm-action {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  min-width: 0;
-  color: #fff;
-  font-size: 15px;
-  line-height: 1.4;
-  text-decoration: none;
-  border-radius: 4px;
-}
-.fm-action span { overflow-wrap: anywhere; }
-.fm-action svg { flex: none; width: 16px; height: 16px; color: ${BRAND_ACCENT}; }
-.fm-action:hover { color: ${BRAND_ACCENT}; text-decoration: underline; }
-.fm-copy {
-  flex: none;
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 3px 10px;
-  font: inherit;
-  font-size: 12px;
-  font-weight: 500;
-  color: ${BRAND_TINT};
-  background: rgba(255, 255, 255, .1);
-  border: 0;
-  border-radius: 999px;
-  cursor: pointer;
-  transition: background-color .15s ease, color .15s ease;
-}
-.fm-copy svg { width: 12px; height: 12px; }
-.fm-copy:hover { background: rgba(255, 255, 255, .2); color: #fff; }
-.fm-copy.is-copied { background: ${BRAND_ACCENT}; color: ${DEFAULT_BRAND}; }
-.fm-action:focus-visible, .fm-copy:focus-visible { outline: 2px solid ${BRAND_ACCENT}; outline-offset: 2px; }
 .maplibregl-popup-close-button {
   width: 28px;
   height: 28px;
@@ -299,56 +255,6 @@ function escapeHtml(value) {
   })[c]);
 }
 
-// Inline icons (stroke = currentColor), so the popup needs no icon font or image requests.
-const icon = (paths) =>
-  `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${paths}</svg>`;
-const ICON_ROUTE = icon('<path d="M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/>');
-const ICON_PHONE = icon('<path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2z"/>');
-const ICON_MAIL = icon('<rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/>');
-const ICON_LINK = icon('<path d="M5 12h14"/><path d="m13 6 6 6-6 6"/>');
-const ICON_COPY = icon('<rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/>');
-
-// Directions to the exact coordinates. A plain link: nothing loads from Google until clicked.
-function mapsUrl({ lat, lng }) {
-  return `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`;
-}
-
-// "+49 (0) 30 439 741 0" -> "tel:+49304397410"; the "(0)" trunk prefix breaks international dialling.
-function telHref(phone) {
-  return "tel:" + phone.replace(/\(0\)/g, "").replace(/[^\d+]/g, "");
-}
-
-function copyButton(value, label) {
-  return `<button type="button" class="fm-copy" data-copy="${escapeHtml(value)}" aria-label="${escapeHtml(label)}">${ICON_COPY}<span class="fm-copy-label" aria-live="polite">Kopieren</span></button>`;
-}
-
-// The hover preview can't hold buttons (it closes as the pointer moves to it), so it shows only
-// name and address; the actions live in the click popup.
-function popupHtml(row, withActions) {
-  const { name, address, phone, email, url } = row;
-  const html =
-    `<div class="fm-name">${escapeHtml(name)}</div>` +
-    (address ? `<div class="fm-address">${escapeHtml(address)}</div>` : "");
-  if (!withActions) return html;
-  const actions = [
-    `<a class="fm-action" href="${escapeHtml(mapsUrl(row))}" target="_blank" rel="noopener noreferrer">${ICON_ROUTE}<span>Route in Google Maps</span></a>`,
-  ];
-  if (phone) {
-    actions.push(
-      `<div class="fm-action-row"><a class="fm-action" href="${escapeHtml(telHref(phone))}">${ICON_PHONE}<span>${escapeHtml(phone)}</span></a>${copyButton(phone, "Telefonnummer kopieren")}</div>`
-    );
-  }
-  if (email) {
-    actions.push(
-      `<div class="fm-action-row"><a class="fm-action" href="mailto:${escapeHtml(email)}">${ICON_MAIL}<span>${escapeHtml(email)}</span></a>${copyButton(email, "E-Mail-Adresse kopieren")}</div>`
-    );
-  }
-  if (url) {
-    actions.push(`<a class="fm-action" href="${escapeHtml(url)}">${ICON_LINK}<span>Zur Standortseite</span></a>`);
-  }
-  return html + `<div class="fm-actions">${actions.join("")}</div>`;
-}
-
 function pinElement(name) {
   const el = document.createElement("div");
   el.className = "fm-pin";
@@ -368,22 +274,7 @@ function parseRows(text) {
       Number.isFinite(lat) && Number.isFinite(lng) &&
       Math.abs(lat) <= 90 && Math.abs(lng) <= 180 &&
       !(lat === 0 && lng === 0);
-    const phone = (row.phone || "").trim();
-    const email = (row.email || "").trim();
-    const url = (row.url || "").trim();
-    if (valid) {
-      rows.push({
-        name,
-        address: (row.address || "").trim(),
-        lat,
-        lng,
-        // Contact fields are optional. Anything malformed is dropped rather than linked, so a
-        // CSV typo can't produce a broken tel:/mailto: or a javascript: URL.
-        phone: /^[\d\s+()/.-]{5,}$/.test(phone) ? phone : "",
-        email: /^[^\s@<>"]+@[^\s@<>"]+\.[^\s@<>"]+$/.test(email) ? email : "",
-        url: /^https?:\/\/[^\s<>"]+$/i.test(url) ? url : "",
-      });
-    }
+    if (valid) rows.push({ name, address: (row.address || "").trim(), lat, lng });
     else console.warn("[futuremeds-map] skipping invalid row", row);
   }
   return rows;
@@ -412,12 +303,6 @@ class FutureMedsMap extends HTMLElement {
     this._container = document.createElement("div");
     this._container.className = "fm-map";
     root.appendChild(this._container);
-
-    // Copy buttons live in popup HTML that MapLibre creates on open, so listen once here.
-    this._container.addEventListener("click", (event) => {
-      const button = event.target.closest?.(".fm-copy");
-      if (button) this._copy(button);
-    });
 
     const view = parseView(this);
     this._map = new MapLibreMap({
@@ -471,31 +356,6 @@ class FutureMedsMap extends HTMLElement {
     this._container.style.setProperty("--fm-inset-bottom", `${insetBottom}px`);
   }
 
-  // Clipboard API first; the execCommand fallback covers older Safari and non-HTTPS previews.
-  async _copy(button) {
-    const text = button.dataset.copy;
-    try {
-      await navigator.clipboard.writeText(text);
-    } catch {
-      const area = document.createElement("textarea");
-      area.value = text;
-      area.setAttribute("readonly", "");
-      area.style.cssText = "position:fixed;opacity:0;pointer-events:none";
-      this.shadowRoot.appendChild(area);
-      area.select();
-      document.execCommand("copy");
-      area.remove();
-    }
-    const label = button.querySelector(".fm-copy-label");
-    button.classList.add("is-copied");
-    label.textContent = "Kopiert";
-    clearTimeout(button._resetTimer);
-    button._resetTimer = setTimeout(() => {
-      button.classList.remove("is-copied");
-      label.textContent = "Kopieren";
-    }, 1600);
-  }
-
   disconnectedCallback() {
     window.removeEventListener("resize", this._onResize);
     this._resizeObserver?.disconnect();
@@ -541,17 +401,18 @@ class FutureMedsMap extends HTMLElement {
     const bounds = new LngLatBounds();
     const map = this._map;
 
-    for (const row of rows) {
-      const { name, lat, lng } = row;
+    for (const { name, address, lat, lng } of rows) {
+      const html =
+        `<div class="fm-name">${escapeHtml(name)}</div>` +
+        (address ? `<div class="fm-address">${escapeHtml(address)}</div>` : "");
       const el = pinElement(name);
       const marker = new Marker({ element: el, anchor: "center" })
         .setLngLat([lng, lat])
-        .setPopup(new Popup({ offset: 12, maxWidth: "320px" }).setHTML(popupHtml(row, true)))
+        .setPopup(new Popup({ offset: 12 }).setHTML(html))
         .addTo(map);
 
       // Like the old map: a lightweight preview on mouse hover, the full popup on click/tap.
-      const preview = new Popup({ offset: 12, maxWidth: "320px", closeButton: false, closeOnClick: false })
-        .setHTML(popupHtml(row, false));
+      const preview = new Popup({ offset: 12, closeButton: false, closeOnClick: false }).setHTML(html);
       el.addEventListener("mouseenter", () => {
         if (!marker.getPopup().isOpen()) preview.setLngLat(marker.getLngLat()).addTo(map);
       });

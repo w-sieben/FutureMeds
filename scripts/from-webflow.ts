@@ -34,8 +34,7 @@ const { data, errors } = Papa.parse<WebflowRow>(await input.text(), {
 });
 if (errors.length) console.warn("CSV parse warnings:", errors);
 
-type Row = { name: string; address: string; country: string; lat: string; lng: string; phone: string; email: string; url: string };
-const rows: Row[] = [];
+const rows: { name: string; address: string; country: string; lat: string; lng: string }[] = [];
 let skipped = 0;
 
 for (const row of data) {
@@ -62,15 +61,11 @@ for (const row of data) {
     country: (row["Country"] ?? "").trim(),
     lat: String(lat),
     lng: String(lng),
-    // The Webflow export has no contact fields; fill these in the CSV by hand.
-    phone: "",
-    email: "",
-    url: "",
   });
 }
 
 const csv = Papa.unparse(rows, {
-  columns: ["name", "address", "country", "lat", "lng", "phone", "email", "url"],
+  columns: ["name", "address", "country", "lat", "lng"],
   newline: "\n",
 });
 await Bun.write(outputPath, csv + "\n");
