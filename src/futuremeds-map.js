@@ -15,6 +15,9 @@ const DEFAULT_HEIGHT = "520px";
 // FutureMeds navy (--futuremeds-dark-blue in the site's CSS). Used for control icons and accents.
 const DEFAULT_BRAND = "#002068";
 const BRAND_TINT = "#dfedff";
+// FutureMeds teal (--futuremeds-green). The site's one consistent hover/focus accent: nav
+// dropdown links, footer links and every button all switch to this on hover.
+const BRAND_ACCENT = "#00d2d9";
 const STYLE_URL = "https://tiles.openfreemap.org/styles/positron";
 
 // Colours copied from the Mapbox "Streets" style on futuremeds.de/studienzentrum/* pages, so
@@ -164,27 +167,45 @@ const WIDGET_CSS = `
   font-family: inherit;
 }
 
-/* Matches the popup CSS the site already had for its Mapbox map. */
+/* Dark-blue "location box", matching the navy surfaces (footer, CTA sections, dark buttons)
+   futuremeds.de already builds everything else from. Tracks --fm-brand rather than a fixed
+   navy so a future data-brand override still gets a same-colour tip and content box. */
 .maplibregl-popup-content {
-  color: #161616;
-  background: #fff;
+  color: #fff;
+  background: var(--fm-brand);
   font-size: 16px;
   line-height: 1.5;
   padding: 12px 16px;
-  border-radius: 4px;
-  box-shadow: none;
+  border-radius: 8px; /* the site's own --boxborderradius */
+  box-shadow: 0 8px 24px -4px rgba(0, 32, 104, .45); /* navy-tinted, like the site's card/nav shadows */
 }
 .maplibregl-popup-close-button + .fm-name { padding-right: 20px; }
 .fm-name { font-weight: 700; }
-.fm-address { margin-top: 4px; }
+.fm-address { margin-top: 4px; color: ${BRAND_TINT}; } /* --futuremeds-blue-10, the site's tint for text on navy */
 .maplibregl-popup-close-button {
   width: 28px;
   height: 28px;
   font-size: 18px;
-  color: #667085;
-  border-radius: 0 4px 0 0;
+  color: ${BRAND_TINT};
+  border-radius: 0 8px 0 0;
 }
-.maplibregl-popup-close-button:hover { background-color: ${BRAND_TINT}; color: var(--fm-brand); }
+/* The site's one hover idiom (nav links, footer links, buttons) is "text turns teal"; a faint
+   white wash gives the icon a hit-state without introducing a colour the brand doesn't use. */
+.maplibregl-popup-close-button:hover { background-color: rgba(255, 255, 255, .15); color: ${BRAND_ACCENT}; }
+.maplibregl-popup-close-button:focus-visible {
+  outline: 2px solid ${BRAND_ACCENT};
+  outline-offset: -2px;
+}
+
+/* MapLibre auto-picks the anchor, so the tip triangle needs a colour for every side. */
+.maplibregl-popup-anchor-top .maplibregl-popup-tip,
+.maplibregl-popup-anchor-top-left .maplibregl-popup-tip,
+.maplibregl-popup-anchor-top-right .maplibregl-popup-tip { border-bottom-color: var(--fm-brand); }
+.maplibregl-popup-anchor-bottom .maplibregl-popup-tip,
+.maplibregl-popup-anchor-bottom-left .maplibregl-popup-tip,
+.maplibregl-popup-anchor-bottom-right .maplibregl-popup-tip { border-top-color: var(--fm-brand); }
+.maplibregl-popup-anchor-left .maplibregl-popup-tip { border-right-color: var(--fm-brand); }
+.maplibregl-popup-anchor-right .maplibregl-popup-tip { border-left-color: var(--fm-brand); }
 
 .maplibregl-ctrl-group { border-radius: 8px; overflow: hidden; }
 .maplibregl-ctrl-group button:hover { background-color: ${BRAND_TINT}; }

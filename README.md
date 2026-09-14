@@ -134,7 +134,7 @@ credits into the visible part by itself, at every breakpoint.
 |--------------------|--------------------------------------|-------------------------------------------------|
 | `data-src`         | this repo's `@main` CSV on jsDelivr   | CSV URL                                         |
 | `data-height`      | `520px`                              | Any CSS height (`100%`, `60vh`...)              |
-| `data-brand`       | `#002068` (FutureMeds navy)          | Accent colour: zoom icons, close-button hover   |
+| `data-brand`       | `#002068` (FutureMeds navy)          | Location box background and zoom icons          |
 | `data-center`      | none (fit to all pins)               | Initial centre as `lng,lat`; needs `data-zoom`  |
 | `data-zoom`        | none                                 | Initial zoom                                    |
 | `data-zoom-mobile` | same as `data-zoom`                  | Initial zoom below 480px screen width           |
@@ -151,10 +151,20 @@ CSS custom properties (set from page CSS on `futuremeds-map`):
 The look copies the Mapbox "Streets" style used on the study-centre pages
 (e.g. futuremeds.de/studienzentrum/studienzentrum-berlin): light beige land, light-blue water,
 green parks, white roads with orange motorways, blue-violet borders, dark labels with white halos,
-16px `#0077ff` location dots, and the site's existing popup CSS (white, 4px radius, no shadow,
-`#161616` text). Place names are German. Hovering a dot shows a
+and 16px `#0077ff` location dots. Place names are German. Hovering a dot shows a
 preview popup, and clicking opens a popup with a close button and glides the map to that centre,
 as the old map did.
+
+The location boxes (popups) carry the FutureMeds brand instead of the plain white box the old
+Mapbox map used: navy `--futuremeds-dark-blue` (`#002068`, the site's footer/CTA/button colour)
+background, bold white name, `--futuremeds-blue-10` (`#dfedff`) address, `.5rem` radius (the
+site's own `--boxborderradius`), and a soft navy-tinted shadow, matching the card and nav-dropdown
+shadows on futuremeds.de. The popup tip tracks the same colour on every side MapLibre can anchor
+it (top/bottom/left/right and the four corners). Both the hover preview and the click popup use
+this styling; only the close button differs, using the site's one hover idiom (nav links, footer
+links, buttons all turn `--futuremeds-green` `#00d2d9` on hover) with a visible teal focus ring
+for keyboard use. The popup background follows `--fm-brand`, so a future `data-brand` override
+still gets a matching content box and tip.
 
 The colours are applied by recolouring OpenFreeMap's positron style in the browser
 (`themeStyle` in [`src/futuremeds-map.js`](src/futuremeds-map.js)), so nothing loads from Mapbox.
