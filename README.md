@@ -143,14 +143,16 @@ CSS custom properties (set from page CSS on `futuremeds-map`):
 
 | property           | default   | effect                                               |
 |--------------------|-----------|------------------------------------------------------|
-| `--fm-pin`         | `#ffffff` | Location dot colour                                  |
+| `--fm-pin`         | `#0077ff` | Location dot colour                                  |
 | `--fm-brand`       | `#002068` | Same as `data-brand` (the attribute wins if present) |
 
 ### Visual design
 
-The look copies the dark-blue "Monochrome" Mapbox style the page used before: land `#469ce8`,
-water and borders `#081f64`, white labels, 16px white location dots, and the site's existing popup
-CSS (white, 4px radius, no shadow, `#161616` text). Place names are German. Hovering a dot shows a
+The look copies the Mapbox "Streets" style used on the study-centre pages
+(e.g. futuremeds.de/studienzentrum/studienzentrum-berlin): light beige land, light-blue water,
+green parks, white roads with orange motorways, blue-violet borders, dark labels with white halos,
+16px `#0077ff` location dots, and the site's existing popup CSS (white, 4px radius, no shadow,
+`#161616` text). Place names are German. Hovering a dot shows a
 preview popup, and clicking opens a popup with a close button and glides the map to that centre,
 as the old map did.
 

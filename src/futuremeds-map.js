@@ -17,15 +17,27 @@ const DEFAULT_BRAND = "#002068";
 const BRAND_TINT = "#dfedff";
 const STYLE_URL = "https://tiles.openfreemap.org/styles/positron";
 
-// Colours copied from the "Monochrome" Mapbox style that futuremeds.de/was-wir-machen used
-// before this widget, so the OpenFreeMap basemap is recoloured to look the same.
-const LAND = "#469ce8";
-const WATER = "#081f64";
-const ROAD = "hsl(227, 80%, 25%)";
-const BUILDING = "hsl(227, 75%, 14%)";
-const WATER_LABEL = "hsl(227, 78%, 36%)";
-const ROAD_LABEL = "hsl(227, 80%, 67%)";
-const DARK_HALO = "hsla(227, 79%, 4%, 0.5)";
+// Colours copied from the Mapbox "Streets" style on futuremeds.de/studienzentrum/* pages, so
+// the OpenFreeMap basemap is recoloured to look the same.
+const LAND = "hsl(20, 20%, 95%)";
+const WATER = "hsl(200, 100%, 80%)";
+const PARK = "hsl(110, 60%, 80%)";
+const WOOD = "hsla(115, 55%, 74%, 0.8)";
+const ICE = "hsl(200, 70%, 90%)";
+const RESIDENTIAL = "hsl(20, 7%, 97%)";
+const BUILDING = "hsl(20, 15%, 85%)";
+const AEROWAY = "hsl(225, 60%, 92%)";
+const ROAD = "hsl(0, 0%, 100%)";
+const ROAD_CASING = "hsl(220, 20%, 85%)";
+const MOTORWAY = "hsl(30, 88%, 64%)";
+const RAIL = "hsl(35, 25%, 82%)";
+const BORDER = "hsl(240, 50%, 60%)";
+const STATE_BORDER = "hsl(240, 50%, 65%)";
+const LABEL = "hsl(220, 30%, 0%)";
+const LABEL_HALO = "hsl(20, 25%, 100%)";
+const WATER_LABEL = "hsl(200, 68%, 57%)";
+const WATER_LABEL_HALO = "hsla(20, 17%, 100%, 0.5)";
+const PIN = "#0077ff";
 
 // The site is German: label places in German where OpenStreetMap has a name, and translate
 // MapLibre's built-in UI strings.
@@ -44,33 +56,54 @@ const LOCALE = {
 // bundle, so resolve it relative to wherever the bundle is served from (jsDelivr or local).
 setWorkerUrl(new URL("./maplibre-gl-worker.mjs", import.meta.url).href);
 
+function fillColor(id) {
+  if (id === "water") return WATER;
+  if (id === "park") return PARK;
+  if (id === "landcover_wood") return WOOD;
+  if (id.startsWith("landcover_")) return ICE; // glacier, ice shelf
+  if (id === "landuse_residential") return RESIDENTIAL;
+  if (id === "building") return BUILDING;
+  if (id.startsWith("aeroway")) return AEROWAY;
+  return LAND;
+}
+
+function lineColor(id) {
+  if (id === "waterway") return WATER;
+  if (id === "boundary_3") return STATE_BORDER;
+  if (id.startsWith("boundary")) return BORDER;
+  if (id.includes("casing") || id.startsWith("aeroway")) return ROAD_CASING;
+  if (id.includes("motorway")) return MOTORWAY;
+  // Positron draws railways as a grey line with white dashes on top; keep the dashes white.
+  if (id.startsWith("railway") && !id.endsWith("dashline")) return RAIL;
+  return ROAD;
+}
+
 // Recolours positron as plain JSON before it's first drawn, so there's no flash of the grey
 // original. Matching by layer type/id prefix means new positron layers still get a sane colour.
 function themeStyle(style) {
-  const layers = [];
-  for (const layer of style.layers) {
+  const layers = style.layers.map((layer) => {
     const { id, type } = layer;
-    // Road shields are sprite icons that clash with the flat monochrome look.
-    if (id.includes("shield")) continue;
     const paint = { ...layer.paint };
     const layout = { ...layer.layout };
     if (type === "background") {
       paint["background-color"] = LAND;
     } else if (type === "fill") {
-      // Parks, landcover and landuse are flattened into the land colour, as on the old map.
-      paint["fill-color"] = id === "water" ? WATER : id === "building" ? BUILDING : LAND;
+      paint["fill-color"] = fillColor(id);
+      // Streets fades greenery to ~40% at regional zooms; positron draws it fully opaque.
+      if (id === "park" || id === "landcover_wood") paint["fill-opacity"] = 0.45;
     } else if (type === "line") {
-      paint["line-color"] = /^(water|boundary)/.test(id) ? WATER : ROAD;
-    } else if (type === "symbol") {
+      paint["line-color"] = lineColor(id);
+    } else if (type === "symbol" && !id.includes("shield")) {
+      // Road shields keep positron's own look and their road-number text.
       const isWater = id.startsWith("water");
-      const isRoad = id.startsWith("highway");
-      paint["text-color"] = isWater ? WATER_LABEL : isRoad ? ROAD_LABEL : "#ffffff";
-      paint["text-halo-color"] = isWater || isRoad ? DARK_HALO : LAND;
-      paint["text-halo-width"] = 1;
+      paint["text-color"] = isWater ? WATER_LABEL : LABEL;
+      paint["text-halo-color"] = isWater ? WATER_LABEL_HALO : LABEL_HALO;
+      paint["text-halo-width"] = id.startsWith("label_country") ? 1.25 : 1;
+      if (id === "label_state") paint["text-opacity"] = 0.5;
       if (layout["text-field"]) layout["text-field"] = GERMAN_NAME;
     }
-    layers.push({ ...layer, paint, layout });
-  }
+    return { ...layer, paint, layout };
+  });
   return { ...style, layers };
 }
 
@@ -87,7 +120,7 @@ const ZOOM_OUT_ICON = maskIcon("M10 13c-.75 0-1.5.75-1.5 1.5S9.25 16 10 16h9c.75
 const WIDGET_CSS = `
 :host {
   --fm-brand: ${DEFAULT_BRAND};
-  --fm-pin: #ffffff;
+  --fm-pin: ${PIN};
   display: block;
   position: relative;
   width: 100%;
@@ -106,8 +139,8 @@ const WIDGET_CSS = `
 .maplibregl-ctrl-top-right { top: var(--fm-inset-top, 0px); }
 .maplibregl-ctrl-bottom-right { bottom: var(--fm-inset-bottom, 0px); }
 
-/* Plain white dots like the old map. The inner dot scales on hover because MapLibre owns the
-   marker element's transform. */
+/* Plain blue dots like the old study-centre maps. The inner dot scales on hover because
+   MapLibre owns the marker element's transform. */
 .fm-pin { width: 16px; height: 16px; cursor: pointer; }
 .fm-pin::after {
   content: "";
@@ -120,7 +153,7 @@ const WIDGET_CSS = `
 }
 .fm-pin:hover::after, .fm-pin:focus-visible::after { transform: scale(1.25); }
 .fm-pin:focus-visible { outline: none; }
-.fm-pin:focus-visible::after { box-shadow: 0 0 0 3px ${WATER}, 0 0 0 5px #fff; }
+.fm-pin:focus-visible::after { box-shadow: 0 0 0 3px #fff, 0 0 0 5px var(--fm-pin); }
 
 /* maplibre-gl.css hardcodes "Helvetica Neue"; inherit instead so the widget uses the page's
    font (Red Hat Display on futuremeds.de) across the shadow boundary. */
