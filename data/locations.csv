@@ -1,21 +1,21 @@
-name,address,country,lat,lng
-Diagnostic-Consultative Centre Ascendent EOOD,"47 Bacho Kiro str, 1202, Sofia, Bulgaria",Bulgaria,42.70244963828634,23.326022253674758
-Berlin,"FutureMeds GmbH, Wilmersdorfer Str. 79, 10629, Berlin",Germany,52.50244777433326,13.307647612474165
-Offenbach,"FutureMeds GmbH, Platz der Deutschen Einheit 4, 63065, Offenbach am Main",Germany,50.106327063722965,8.75959514748141
-FutureMeds Birmingham,"Soho Road Health Centre, 247-251 , Soho Road, Birmingham",Great Britain,52.503127519848015,-1.9355741033742384
-FutureMeds Liverpool,"Bridle Road Clinic, Bridle Road, Bromborough",Great Britain,53.32238664305,-2.9718342812907244
-Futuremeds Teesside,"Middlefield Centre, University Hospital of North Tees, Hardwick Road, Hardwick",Great Britain,54.58255199716267,-1.3503487743931086
-FutureMeds Kraków,"Krakowskie Centrum Medyczne Sp. z o.o., Kopernika 32, 31-501 Kraków",Poland,50.062910217277306,19.950565197119662
-FutureMeds Lodz,"Gruszowa 2 St. , 91-363 Łódź, Poland",Poland,51.820342953659,19.430849783086597
-FutureMeds Olsztyn,"Ul Osińskiego 9, 10-010 Olsztyn",Poland,53.772120609308,20.475186340893178
-FutureMeds Targówek,"św. Wincentego 93 St. appt.7, 03-291 Warszawa, Poland",Poland,52.293650310480494,21.05224024079062
-FutureMeds Warszawa Centrum,"Sapieżyńska 3 St. , 00-215 Warszawa, Poland",Poland,52.2537992355461,21.003635640787977
-FutureMeds Wroclaw,"Legnicka 16 , 53-673 Wrocław",Poland,51.1121421451826,17.018965911874453
-FutureMeds Glasgow,"McCafferty House, 99 Firhill Road, Glasgow",Scotland,55.88018912530673,-4.269847143613456
-Futuremeds Spain,"Clinica DKF, Avenida Del Doctor Arce 27, Madrid 28002",Spain,40.447108295071196,-3.6817180599451396
-FutureMeds Spain Cadiz,"Calle Ayala, 2, Chiclana de la Frontera, Cádiz, 11130",Spain,36.42099493806174,-6.149878546664597
-FutureMeds Spain Madrid,"Hospital at Calle De la Granja, 8, 28003 Madrid",Spain,40.44594176305248,-3.7167316157659145
-FutureMeds Spain Sevilla,"Hospital Glorieta de Mejico 1, 41012 Sevilla",Spain,37.369151598642446,-5.988080804288269
-"CE “Hospital #1"" of Zhytomyr City Council","70, Velyka Berdychivska str., Zhytomyr 10002, Ukraine",Ukraine,50.25430832386083,28.6654300577817
-"Medical Center Universal Clinic ""Oberig"" of ""Kapytal"" LCC","3V, Zoologichna str., Kyiv 03068, Ukraine",Ukraine,50.44714959056605,30.497473011003986
-Private Small-Scale Enterprise Medical Centre,,Ukraine,50.381931300260874,30.383802409974546
+name,address,country,lat,lng,phone,email,url
+Diagnostic-Consultative Centre Ascendent EOOD,"47 Bacho Kiro str, 1202, Sofia, Bulgaria",Bulgaria,42.70244963828634,23.326022253674758,,,
+Berlin,"FutureMeds GmbH, Wilmersdorfer Str. 79, 10629, Berlin",Germany,52.50244777433326,13.307647612474165,+49 (0) 30 439 741 0,berlin@futuremeds.com,https://www.futuremeds.de/studienzentrum/studienzentrum-berlin
+Offenbach,"FutureMeds GmbH, Platz der Deutschen Einheit 4, 63065, Offenbach am Main",Germany,50.106327063722965,8.75959514748141,+49 (0) 69 247 433 849,offenbach@futuremeds.com,https://www.futuremeds.de/studienzentrum/studienzentrum-offenbach
+FutureMeds Birmingham,"Soho Road Health Centre, 247-251 , Soho Road, Birmingham",Great Britain,52.503127519848015,-1.9355741033742384,,,
+FutureMeds Liverpool,"Bridle Road Clinic, Bridle Road, Bromborough",Great Britain,53.32238664305,-2.9718342812907244,,,
+Futuremeds Teesside,"Middlefield Centre, University Hospital of North Tees, Hardwick Road, Hardwick",Great Britain,54.58255199716267,-1.3503487743931086,,,
+FutureMeds Kraków,"Krakowskie Centrum Medyczne Sp. z o.o., Kopernika 32, 31-501 Kraków",Poland,50.062910217277306,19.950565197119662,,,
+FutureMeds Lodz,"Gruszowa 2 St. , 91-363 Łódź, Poland",Poland,51.820342953659,19.430849783086597,,,
+FutureMeds Olsztyn,"Ul Osińskiego 9, 10-010 Olsztyn",Poland,53.772120609308,20.475186340893178,,,
+FutureMeds Targówek,"św. Wincentego 93 St. appt.7, 03-291 Warszawa, Poland",Poland,52.293650310480494,21.05224024079062,,,
+FutureMeds Warszawa Centrum,"Sapieżyńska 3 St. , 00-215 Warszawa, Poland",Poland,52.2537992355461,21.003635640787977,,,
+FutureMeds Wroclaw,"Legnicka 16 , 53-673 Wrocław",Poland,51.1121421451826,17.018965911874453,,,
+FutureMeds Glasgow,"McCafferty House, 99 Firhill Road, Glasgow",Scotland,55.88018912530673,-4.269847143613456,,,
+Futuremeds Spain,"Clinica DKF, Avenida Del Doctor Arce 27, Madrid 28002",Spain,40.447108295071196,-3.6817180599451396,,,
+FutureMeds Spain Cadiz,"Calle Ayala, 2, Chiclana de la Frontera, Cádiz, 11130",Spain,36.42099493806174,-6.149878546664597,,,
+FutureMeds Spain Madrid,"Hospital at Calle De la Granja, 8, 28003 Madrid",Spain,40.44594176305248,-3.7167316157659145,,,
+FutureMeds Spain Sevilla,"Hospital Glorieta de Mejico 1, 41012 Sevilla",Spain,37.369151598642446,-5.988080804288269,,,
+"CE “Hospital #1"" of Zhytomyr City Council","70, Velyka Berdychivska str., Zhytomyr 10002, Ukraine",Ukraine,50.25430832386083,28.6654300577817,,,
+"Medical Center Universal Clinic ""Oberig"" of ""Kapytal"" LCC","3V, Zoologichna str., Kyiv 03068, Ukraine",Ukraine,50.44714959056605,30.497473011003986,,,
+Private Small-Scale Enterprise Medical Centre,,Ukraine,50.381931300260874,30.383802409974546,,,

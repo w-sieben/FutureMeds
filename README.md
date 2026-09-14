@@ -27,6 +27,9 @@ The widget fetches the CSV at runtime, so a committed CSV edit goes live in abou
 | `country` | yes      | Informational (not shown on the map)                         |
 | `lat`     | yes      | Decimal degrees, -90..90                                     |
 | `lng`     | yes      | Decimal degrees, -180..180                                   |
+| `phone`   | no       | Shown as a call link with a copy button, e.g. `+49 (0) 30 439 741 0` |
+| `email`   | no       | Shown as a mail link with a copy button                      |
+| `url`     | no       | Full `https://` link to the centre's page ("Zur Standortseite") |
 
 Rules:
 - Wrap a value in double quotes if it contains a comma: `"Kopernika 32, 31-501 Kraków"`.
@@ -40,7 +43,8 @@ Rules:
 
 1. Open [`data/locations.csv`](data/locations.csv) on GitHub and click the pencil (Edit) icon.
 2. Add a new line at the end (or change an existing one), for example:
-   `FutureMeds Hamburg,"Musterstraße 1, 20095 Hamburg",Germany,53.5511,9.9937`
+   `FutureMeds Hamburg,"Musterstraße 1, 20095 Hamburg",Germany,53.5511,9.9937,,,`
+   (the three trailing commas are the empty `phone`, `email` and `url` columns; fill them in if known)
 3. Click **Commit changes** and commit directly to `main`.
 4. The *Purge jsDelivr cache* action runs automatically. Reload the Webflow page about a minute later.
 
@@ -145,6 +149,19 @@ CSS custom properties (set from page CSS on `futuremeds-map`):
 |--------------------|-----------|------------------------------------------------------|
 | `--fm-pin`         | `#0077ff` | Location dot colour                                  |
 | `--fm-brand`       | `#002068` | Same as `data-brand` (the attribute wins if present) |
+
+### Location actions
+
+Hovering a dot shows a preview (name, address, "Klicken für Route & Kontakt"). Clicking or tapping
+a dot opens the location box with:
+
+- **Route in Google Maps**: directions to the centre's coordinates, opened in a new tab. It is a
+  plain link, so nothing is loaded from Google until a visitor clicks it (no consent needed).
+- **Phone** (when `phone` is set): tap to call, plus a *Kopieren* button.
+- **Email** (when `email` is set): opens the mail app, plus a *Kopieren* button.
+- **Zur Standortseite** (when `url` is set): link to the centre's page on the site.
+
+Malformed phone numbers, emails or URLs in the CSV are ignored instead of producing broken links.
 
 ### Visual design
 
