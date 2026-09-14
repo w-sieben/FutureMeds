@@ -182,7 +182,6 @@ const WIDGET_CSS = `
 .maplibregl-popup-close-button + .fm-name { padding-right: 20px; }
 .fm-name { font-weight: 700; }
 .fm-address { margin-top: 4px; color: ${BRAND_TINT}; } /* --futuremeds-blue-10, the site's tint for text on navy */
-.fm-hint { margin-top: 6px; font-size: 13px; color: ${BRAND_TINT}; opacity: .8; }
 
 /* Actions only appear in the click popup: route, call/mail with copy, detail page. */
 .fm-actions {
@@ -323,16 +322,14 @@ function copyButton(value, label) {
   return `<button type="button" class="fm-copy" data-copy="${escapeHtml(value)}" aria-label="${escapeHtml(label)}">${ICON_COPY}<span class="fm-copy-label" aria-live="polite">Kopieren</span></button>`;
 }
 
-// The hover preview can't hold buttons (it closes as the pointer moves to it), so it only hints
-// at what a click opens.
+// The hover preview can't hold buttons (it closes as the pointer moves to it), so it shows only
+// name and address; the actions live in the click popup.
 function popupHtml(row, withActions) {
   const { name, address, phone, email, url } = row;
   const html =
     `<div class="fm-name">${escapeHtml(name)}</div>` +
     (address ? `<div class="fm-address">${escapeHtml(address)}</div>` : "");
-  if (!withActions) {
-    return html + `<div class="fm-hint">${phone || email ? "Klicken für Route &amp; Kontakt" : "Klicken für Route"}</div>`;
-  }
+  if (!withActions) return html;
   const actions = [
     `<a class="fm-action" href="${escapeHtml(mapsUrl(row))}" target="_blank" rel="noopener noreferrer">${ICON_ROUTE}<span>Route in Google Maps</span></a>`,
   ];

@@ -152,8 +152,8 @@ CSS custom properties (set from page CSS on `futuremeds-map`):
 
 ### Location actions
 
-Hovering a dot shows a preview (name, address, "Klicken für Route & Kontakt"). Clicking or tapping
-a dot opens the location box with:
+Hovering a dot shows a preview with name and address. Clicking or tapping a dot opens the location
+box with all details:
 
 - **Route in Google Maps**: directions to the centre's coordinates, opened in a new tab. It is a
   plain link, so nothing is loaded from Google until a visitor clicks it (no consent needed).
