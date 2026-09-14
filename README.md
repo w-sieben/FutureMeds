@@ -48,7 +48,7 @@ Rules:
 
 ```sh
 bun install
-bun run dev        # builds, then serves http://localhost:3000/
+bun run dev        # builds, then serves http://localhost:4000/ (override with PORT=...)
 ```
 
 `index.html` renders `<futuremeds-map data-src="./data/locations.csv">`, so edits to the local CSV

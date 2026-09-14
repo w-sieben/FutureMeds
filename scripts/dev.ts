@@ -2,7 +2,7 @@
 import { join, normalize } from "node:path";
 
 const root = join(import.meta.dir, "..");
-const port = Number(process.env.PORT) || 3000;
+const port = Number(process.env.PORT) || 4000;
 
 Bun.serve({
   port,
